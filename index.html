@@ -470,8 +470,10 @@ function load(){
     if (!s) return migrate(def);
     const niv = (s.niv && typeof s.niv === 'object') ? s.niv : {};
     const log = (s.log && typeof s.log === 'object') ? s.log : {};
-    const sel = /^\d{4}-\d\d-\d\d$/.test(s.sel) ? s.sel : AZI;
-    return { sel, niv, log };
+    /* Ziua aleasă NU se ține de la o deschidere la alta: aplicația pornește
+       mereu pe ziua de azi. Altfel, când revii miercurea următoare, ai da
+       peste miercurea trecută cu tot bifat, ca și cum ai fi terminat deja. */
+    return { sel: AZI, niv, log };
   } catch (e) { return migrate(def); }
 }
 // bifele din versiunea pe o singură zi trec în jurnal, la data lor
@@ -710,7 +712,13 @@ function wire(){
   });
 
   $('clockX').addEventListener('click', stopClock);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden && tick) paint(); });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) return;
+    /* pe telefon aplicația poate sta deschisă peste noapte: atunci AZI e de
+       ieri, iar bifele ar pleca în ziua greșită. O reîncărcăm, să prindă ziua. */
+    if (ymd(new Date()) !== AZI) { location.reload(); return; }
+    if (tick) paint();
+  });
 }
 
 wire();
