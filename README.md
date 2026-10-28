@@ -14,8 +14,12 @@ Site: https://alinamadalina.github.io/Antrenament/
 - **Nivele** — fiecare exercițiu pornește de la cea mai ușoară variantă
   (flotări la perete) și urcă până la cea grea. Urci când termini toate
   seriile cu formă bună și mai aveai două repetări în rezervă.
+- **Bifă pe serie** — fiecare exercițiu are câte o bulină pentru fiecare
+  serie. Bifezi pe rând, vezi unde ai rămas, iar când sunt toate gata se
+  bifează singur exercițiul. Apeși din nou pe ultima bulină dacă te-ai
+  grăbit.
 - **Cronometru** — pentru exercițiile ținute pe timp și pentru pauza de 90 de
-  secunde dintre serii, care pornește singură la fiecare bifă.
+  secunde, care pornește singură după fiecare serie bifată.
 - **Clipuri** — fiecare exercițiu are un buton care caută pe YouTube exact
   varianta de la nivelul la care ești.
 - **Merge offline** — după prima deschidere, aplicația pornește și fără

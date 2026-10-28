@@ -87,6 +87,15 @@ h1{font-family:var(--disp);font-weight:600;font-size:1.5rem;margin:18px 0 2px;le
 .dose{display:inline-block;font-family:var(--disp);font-weight:600;font-size:1.02rem;
   margin:9px 0 0}
 
+/* bifa pe serie */
+.ser{display:flex;align-items:center;gap:7px;margin-top:11px;flex-wrap:wrap}
+.sdot{flex:0 0 auto;width:36px;height:36px;border-radius:50%;padding:0;
+  border:1.5px solid var(--line);background:var(--bg);color:var(--muted);
+  font-family:var(--body);font-size:.88rem;font-weight:500;
+  display:grid;place-items:center;font-variant-numeric:tabular-nums}
+.sdot.on{background:var(--band);border-color:var(--band);color:#fff}
+.slbl{font-size:.8rem;color:var(--muted);margin-left:2px}
+
 /* scara de nivele */
 .ladder{display:flex;align-items:center;gap:9px;margin-top:12px}
 .rungs{flex:1;display:flex;gap:4px;align-items:flex-end;height:26px}
@@ -475,28 +484,44 @@ const AZI = ymd(new Date());
 const LUNI = ['ianuarie','februarie','martie','aprilie','mai','iunie',
   'iulie','august','septembrie','octombrie','noiembrie','decembrie'];
 
+/* În jurnal ținem câte serii ai făcut din fiecare exercițiu. Înainte ținem
+   doar „făcut / nefăcut”, ca 1. SER_TOT e semnul că o zi veche era gata:
+   un număr mai mare decât orice număr de serii, ca să rămână completă
+   oricâte serii ar avea exercițiul mai târziu. */
+const VER_LOG = 3;
+const SER_TOT = 99;
+function migrateSerii(log){
+  for (const iso in log) {
+    const zi = log[iso];
+    for (const k in zi) if (zi[k]) zi[k] = SER_TOT;
+  }
+  return log;
+}
+
 function load(){
   const def = { sel: AZI, niv: {}, log: {} };
   try {
     const s = JSON.parse(localStorage.getItem(LS_KEY));
     if (!s) return migrate(def);
     const niv = (s.niv && typeof s.niv === 'object') ? s.niv : {};
-    const log = (s.log && typeof s.log === 'object') ? s.log : {};
+    let log = (s.log && typeof s.log === 'object') ? s.log : {};
+    if (s.v !== VER_LOG) log = migrateSerii(log);
     /* Ziua aleasă NU se ține de la o deschidere la alta: aplicația pornește
        mereu pe ziua de azi. Altfel, când revii miercurea următoare, ai da
        peste miercurea trecută cu tot bifat, ca și cum ai fi terminat deja. */
-    return { sel: AZI, niv, log };
+    return { sel: AZI, v: VER_LOG, niv, log };
   } catch (e) { return migrate(def); }
 }
 // bifele din versiunea pe o singură zi trec în jurnal, la data lor
 function migrate(def){
+  def.v = VER_LOG;
   try {
     const old = JSON.parse(localStorage.getItem('antrenament.zile.v1'));
     if (!old) return def;
     if (old.niv) def.niv = old.niv;
     if (old.done && old.data) {
       const zi = {};
-      for (const k in old.done) zi[k.slice(k.indexOf('.') + 1)] = 1;
+      for (const k in old.done) zi[k.slice(k.indexOf('.') + 1)] = SER_TOT;
       if (Object.keys(zi).length) def.log[old.data] = zi;
     }
   } catch (e) {}
@@ -519,13 +544,19 @@ let tick = null, endAt = 0, clockLbl = '';
    dispozitivului din mână, altfel laptopul ți-ar muta ziua pe telefon. */
 window.AntrenApp = {
   KEY: LS_KEY,
-  getState: () => ({ niv: state.niv, log: state.log }),
+  getState: () => ({ v: VER_LOG, niv: state.niv, log: state.log }),
   setState(ns){
     if (!ns || typeof ns !== 'object') return false;
     if (!ns.niv || typeof ns.niv !== 'object') return false;
     if (!ns.log || typeof ns.log !== 'object') return false;
     applyingRemote = true;
-    try { state.niv = ns.niv; state.log = ns.log; save(); render(); }
+    try {
+      state.niv = ns.niv;
+      /* de pe un dispozitiv rămas pe versiunea veche vin bife, nu serii */
+      state.log = ns.v === VER_LOG ? ns.log : migrateSerii(ns.log);
+      state.v = VER_LOG;
+      save(); render();
+    }
     finally { applyingRemote = false; }
     return true;
   }
@@ -536,17 +567,29 @@ const ziuaPt = iso => ZILE[(new Date(iso + 'T12:00:00').getDay() + 6) % 7];
 const ziua = () => ziuaPt(state.sel);
 const nivel = (z, ex) => Math.min(ex.niv.length - 1, state.niv[z.key + '.' + ex.id] || 0);
 const bife = iso => state.log[iso] || {};
-const bifat = (iso, ex) => !!bife(iso)[ex.id];
+/* câte serii cere nivelul la care ești acum, și câte ai bifat din ele */
+const serii = (z, ex) => ex.niv[nivel(z, ex)].s || 1;
+const serFacute = (iso, ex) => Math.min(bife(iso)[ex.id] || 0, serii(ziuaPt(iso), ex));
+const bifat = (iso, ex) => (bife(iso)[ex.id] || 0) >= serii(ziuaPt(iso), ex);
 function progres(iso){
   const z = ziuaPt(iso), b = bife(iso);
-  return { gata: z.ex.filter(e => b[e.id]).length, tot: z.ex.length };
+  return { gata: z.ex.filter(e => (b[e.id] || 0) >= serii(z, e)).length, tot: z.ex.length };
+}
+/* scrie câte serii sunt gata; 0 șterge exercițiul, iar ziua goală dispare */
+function setSerii(iso, ex, n){
+  n = Math.max(0, Math.min(serii(ziuaPt(iso), ex), n));
+  const zi = state.log[iso] || (state.log[iso] = {});
+  if (n === 0) {
+    delete zi[ex.id];
+    if (!Object.keys(zi).length) delete state.log[iso];
+  } else zi[ex.id] = n;
 }
 
 // ---- text ------------------------------------------------------------
 function doza(l){
-  const serii = l.s > 1 ? l.s + ' serii × ' : '';
-  if (l.t) return serii + (l.t >= 60 ? (l.t / 60) + ' min' : l.t + ' secunde') + (l.p ? ' pe parte' : '');
-  return serii + l.r + (l.p ? ' pe parte' : '');
+  const pre = l.s > 1 ? l.s + ' serii × ' : '';
+  if (l.t) return pre + (l.t >= 60 ? (l.t / 60) + ' min' : l.t + ' secunde') + (l.p ? ' pe parte' : '');
+  return pre + l.r + (l.p ? ' pe parte' : '');
 }
 function mmss(s){
   const m = Math.floor(s / 60);
@@ -605,6 +648,14 @@ function renderZi(){
       <p class="lvl-name">${l.n}</p>
       <p class="how">${l.c}</p>
       <p class="dose">${doza(l)}</p>
+      ${(!viitor && serii(z, ex) > 1) ? `<div class="ser" role="group" aria-label="Seriile de la ${ex.nume}">
+        ${Array.from({ length: serii(z, ex) }, (_, k) => {
+          const gata = k < serFacute(iso, ex);
+          return `<button class="sdot${gata ? ' on' : ''}" type="button" data-ser="${k + 1}" data-sx="${ex.id}"
+            aria-pressed="${gata}" aria-label="Seria ${k + 1}${gata ? ', făcută' : ''}">${k + 1}</button>`;
+        }).join('')}
+        <span class="slbl">${serFacute(iso, ex)} din ${serii(z, ex)} serii</span>
+      </div>` : ''}
       <div class="acts">
         <a class="vid" href="${cauta(z, ex, i)}" target="_blank" rel="noopener noreferrer">▶ Vezi cum se face <span>YouTube</span></a>
         ${l.t ? `<button class="timer-btn" type="button" data-t="${l.t}" data-lbl="${ex.nume}">Pornește ${l.t >= 60 ? (l.t / 60) + ' min' : l.t + ' s'}</button>` : ''}
@@ -695,16 +746,24 @@ function wire(){
       return;
     }
 
+    /* o bulină de serie: apeși pe a treia și ai trei serii gata; apeși din
+       nou pe ultima bifată și o scoți, dacă te-ai grăbit */
+    const sr = e.target.closest('[data-ser]');
+    if (sr) {
+      const ex = z.ex.find(x => x.id === sr.dataset.sx);
+      const acum = serFacute(iso, ex), cerut = +sr.dataset.ser;
+      const nou = cerut === acum ? cerut - 1 : cerut;
+      setSerii(iso, ex, nou);
+      /* pauza pleacă după seria pe care tocmai ai terminat-o */
+      if (nou > acum && !z.rest && iso === AZI) startClock(REST_S, 'Pauză');
+      save(); render();
+      return;
+    }
+
     const tk = e.target.closest('[data-tick]');
     if (tk) {
-      const zi = state.log[iso] || (state.log[iso] = {});
-      if (zi[tk.dataset.tick]) {
-        delete zi[tk.dataset.tick];
-        if (!Object.keys(zi).length) delete state.log[iso];
-      } else {
-        zi[tk.dataset.tick] = 1;
-        if (!z.rest && iso === AZI) startClock(REST_S, 'Pauză');
-      }
+      const ex = z.ex.find(x => x.id === tk.dataset.tick);
+      setSerii(iso, ex, bifat(iso, ex) ? 0 : serii(z, ex));
       save(); render();
       return;
     }
