@@ -6,7 +6,7 @@
      - iconițe și fonturi Google → cache întâi, reîmprospătat în fundal
        (ca aplicația să meargă offline)
 */
-var VERSION = 'v1.1.0';
+var VERSION = 'v1.2.0';
 var SHELL = 'antren-shell-' + VERSION;
 var RUNTIME = 'antren-runtime-' + VERSION;
 

@@ -131,9 +131,16 @@ h1{font-family:var(--disp);font-weight:600;font-size:1.5rem;margin:18px 0 2px;le
   border-radius:10px;padding:9px 14px;font-size:.88rem;font-weight:500}
 .clock.ding .t{color:var(--red)}
 
+/* ---- instalarea pe telefon ---- */
+.inst{background:var(--red-soft);border:1px solid var(--red);border-radius:14px;
+  padding:12px 15px;margin:8px 0 0}
+.inst p{margin:0;font-size:.9rem;line-height:1.45}
+.inst button{margin-top:10px;border:none;background:var(--red);color:#fff;
+  border-radius:10px;padding:9px 16px;font-size:.9rem;font-weight:500}
+
 /* ---- sincronizare ---- */
 .sync{background:var(--surface);border:1px solid var(--line);border-radius:15px;
-  padding:0 15px;margin:20px 0 6px}
+  padding:0 15px;margin:8px 0 0}
 .sync summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;
   padding:13px 0;font-family:var(--disp);font-weight:600;font-size:1.02rem}
 .sync summary::-webkit-details-marker{display:none}
@@ -180,7 +187,10 @@ h1{font-family:var(--disp);font-weight:600;font-size:1.5rem;margin:18px 0 2px;le
     <div class="cal-foot"><span id="calSum"></span><button type="button" id="toAzi">Azi</button></div>
   </section>
 
-  <main id="day"></main>
+  <div class="inst" id="instBox" hidden>
+    <p id="instTxt"></p>
+    <button type="button" id="instBtn" hidden>Instaleaz&#259; aplica&#539;ia</button>
+  </div>
 
   <details class="sync" id="syncBox">
     <summary>&#8596; Sincronizare<span class="st" id="syncState"></span></summary>
@@ -196,6 +206,8 @@ h1{font-family:var(--disp);font-weight:600;font-size:1.5rem;margin:18px 0 2px;le
       <p class="ver">versiunea <span id="verNo">&#8230;</span></p>
     </div>
   </details>
+
+  <main id="day"></main>
 </div>
 
 <button type="button" class="updbar" id="upd" hidden>Versiune nou&#259; &#8212; apas&#259; ca s&#259; o folose&#537;ti</button>
@@ -726,7 +738,52 @@ render();
 </script>
 
 <script>
-/* ---------- instalare ca aplicatie + actualizare automata ---------- */
+/* ---------- butonul de instalare pe ecranul principal ---------- */
+(function(){
+  var box=document.getElementById('instBox'),
+      txt=document.getElementById('instTxt'),
+      btn=document.getElementById('instBtn'),
+      ev=null;
+
+  /* deja instalata: deschisa de pe ecranul principal, nu din browser */
+  if(window.matchMedia('(display-mode: standalone)').matches||
+     window.navigator.standalone===true)return;
+
+  function show(t,cuButon){
+    txt.textContent=t;
+    btn.hidden=!cuButon;
+    box.hidden=false;
+  }
+
+  /* Chrome pe Android ne da chiar el dreptul sa deschidem fereastra de
+     instalare: il oprim din a o arata singur si o legam de buton */
+  window.addEventListener('beforeinstallprompt',function(e){
+    e.preventDefault();ev=e;
+    show('Pune aplicația pe ecranul principal: se deschide ca o aplicație, fără bara de browser, și merge și fără internet.',true);
+  });
+  btn.addEventListener('click',function(){
+    if(!ev)return;
+    ev.prompt();
+    ev.userChoice.then(function(){ev=null;box.hidden=true;});
+  });
+  window.addEventListener('appinstalled',function(){box.hidden=true;});
+
+  /* Daca browserul nu ne da butonul (iPhone, sau Chrome care nu-l ofera
+     acum), spunem pe unde se gaseste in meniu. Doar pe telefon. */
+  setTimeout(function(){
+    if(!box.hidden)return;
+    if(!window.matchMedia('(pointer:coarse)').matches)return;
+    var ua=navigator.userAgent;
+    var ios=/iPad|iPhone|iPod/.test(ua)||
+            (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+    show(ios
+      ? 'Ca să o pui pe ecranul principal: în Safari, apasă butonul de partajare (pătratul cu săgeată în sus) și alege „Add to Home Screen”.'
+      : 'Ca să o pui pe ecranul principal: deschide meniul browserului (cele trei puncte) și alege „Instalează aplicația” sau „Adaugă la ecranul principal”.',
+      false);
+  },2500);
+})();
+
+/* ---------- inregistrarea service worker-ului si actualizarea automata ---------- */
 (function(){
   var out=document.getElementById('verNo');
   function showVer(v){if(out&&v)out.textContent=v;}
