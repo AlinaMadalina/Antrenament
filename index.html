@@ -776,9 +776,14 @@ render();
     var ua=navigator.userAgent;
     var ios=/iPad|iPhone|iPod/.test(ua)||
             (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-    show(ios
+    /* browserul dinauntrul altei aplicatii (WhatsApp, Facebook, Instagram):
+       de acolo nu se poate instala nimic, oricat de corect ar fi manifestul */
+    var inAlta=/FBAN|FBAV|FB_IAB|Instagram|MicroMessenger|Snapchat|Line\/|; ?wv\)/i.test(ua);
+    show(inAlta
+      ? 'Linkul s-a deschis în browserul dinauntrul altei aplicații, de unde nu se poate instala. Apasă meniul din colț și alege „Deschide în Chrome”, apoi încearcă aici din nou.'
+      : ios
       ? 'Ca să o pui pe ecranul principal: în Safari, apasă butonul de partajare (pătratul cu săgeată în sus) și alege „Add to Home Screen”.'
-      : 'Ca să o pui pe ecranul principal: deschide meniul browserului (cele trei puncte) și alege „Instalează aplicația” sau „Adaugă la ecranul principal”.',
+      : 'Ca să o pui pe ecranul principal: meniul Chrome (cele trei puncte) → „Instalează aplicația” sau „Adaugă la ecranul principal”. Dacă nu-l găsești, reîncarcă pagina o dată și caută iar.',
       false);
   },2500);
 })();
