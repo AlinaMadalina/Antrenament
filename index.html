@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#FBF5F2">
+<meta name="description" content="O grup&#259; muscular&#259; pe zi, acas&#259;, f&#259;r&#259; echipament. Fiecare exerci&#539;iu urc&#259; pe nivele.">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Antrenament">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Antrenament pe zile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FBF5F2; --surface:#FFFFFF; --ink:#2B2027; --muted:#877A80;
+  --line:#EADFDA; --red:#C04A6E; --red-soft:#FAECF0; --rest:#6E8B78;
+  --disp:'Fraunces',Georgia,serif;
+  --body:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --band:#C04A6E;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;
+  line-height:1.5;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;
+  padding-bottom:96px}
+button{font-family:var(--body);cursor:pointer}
+:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+
+.wrap{max-width:640px;margin:0 auto;padding:0 14px}
+
+h1{font-family:var(--disp);font-weight:600;font-size:1.5rem;margin:18px 0 2px;letter-spacing:-.01em}
+.lede{color:var(--muted);font-size:.92rem;margin:0 0 14px;max-width:52ch}
+
+/* ---- calendar ---- */
+.cal{background:var(--surface);border:1px solid var(--line);border-radius:15px;
+  padding:12px 12px 10px;margin-bottom:4px}
+.cal-top{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.cal-top h2{flex:1;font-family:var(--disp);font-weight:600;font-size:1.05rem;margin:0;
+  text-align:center;letter-spacing:-.01em}
+.nav{width:34px;height:34px;flex:0 0 auto;border:1px solid var(--line);background:var(--bg);
+  border-radius:10px;color:var(--ink);font-size:1rem;display:grid;place-items:center}
+.dow{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px}
+.dow span{text-align:center;font-size:.7rem;color:var(--muted);font-weight:500}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.day{aspect-ratio:1;border:none;background:none;border-radius:50%;padding:0;
+  font-family:var(--body);font-size:.88rem;color:var(--ink);position:relative;
+  display:grid;place-items:center;font-variant-numeric:tabular-nums}
+.day.blank{visibility:hidden}
+.day.fut{color:#C6BCBE}
+.day.part::after{content:"";position:absolute;bottom:13%;left:50%;transform:translateX(-50%);
+  width:4px;height:4px;border-radius:50%;background:var(--red)}
+.day.full{background:var(--red);color:#fff;font-weight:600}
+.day.today{box-shadow:inset 0 0 0 1.5px var(--red)}
+.day.sel{box-shadow:inset 0 0 0 2px var(--ink)}
+.day.full.sel{box-shadow:inset 0 0 0 2px var(--ink)}
+.cal-foot{margin:10px 2px 0;font-size:.8rem;color:var(--muted);display:flex;
+  justify-content:space-between;gap:10px}
+.cal-foot button{border:none;background:none;color:var(--red);font-size:.8rem;
+  text-decoration:underline;padding:0}
+
+/* ---- capul zilei ---- */
+.head{padding:18px 0 6px}
+.head h2{font-family:var(--disp);font-weight:600;font-size:1.7rem;margin:0;letter-spacing:-.015em}
+.head .grp{color:var(--muted);font-size:.92rem;margin:2px 0 0}
+.bar{height:5px;background:var(--line);border-radius:99px;overflow:hidden;margin:12px 0 2px}
+.bar i{display:block;height:100%;width:0;background:var(--band);transition:width .25s}
+.bar-lbl{font-size:.8rem;color:var(--muted)}
+
+/* ---- exercițiu ---- */
+.ex{background:var(--surface);border:1px solid var(--line);border-radius:15px;
+  padding:14px 15px;margin:11px 0}
+.ex.done{border-color:var(--band);background:var(--red-soft)}
+.ex-top{display:flex;align-items:flex-start;gap:11px}
+.ex-name{flex:1;min-width:0;font-family:var(--disp);font-weight:600;font-size:1.06rem;line-height:1.25}
+.tick{flex:0 0 auto;width:34px;height:34px;border-radius:10px;border:1px solid var(--line);
+  background:var(--bg);color:var(--muted);font-size:1.05rem;display:grid;place-items:center}
+.ex.done .tick{background:var(--band);border-color:var(--band);color:#fff}
+
+.lvl-name{font-size:.95rem;margin:9px 0 1px;font-weight:500}
+.how{color:var(--muted);font-size:.88rem;margin:0}
+.dose{display:inline-block;font-family:var(--disp);font-weight:600;font-size:1.02rem;
+  margin:9px 0 0}
+
+/* scara de nivele */
+.ladder{display:flex;align-items:center;gap:9px;margin-top:12px}
+.rungs{flex:1;display:flex;gap:4px;align-items:flex-end;height:26px}
+.rung{flex:1;background:var(--line);border-radius:3px}
+.rung.on{background:var(--band)}
+.lbtn{flex:0 0 auto;width:32px;height:32px;border-radius:9px;border:1px solid var(--line);
+  background:var(--surface);color:var(--ink);font-size:1.05rem;line-height:1;display:grid;place-items:center}
+.lbtn:disabled{opacity:.3}
+.lvl-n{font-size:.78rem;color:var(--muted);white-space:nowrap;min-width:74px;text-align:center}
+
+.timer-btn{margin-top:10px;border:1px solid var(--band);background:var(--surface);color:var(--band);
+  border-radius:10px;padding:7px 13px;font-size:.88rem;font-weight:500}
+.timer-btn.run{background:var(--band);color:#fff}
+.vid{display:inline-flex;align-items:center;gap:7px;margin-top:10px;border:1px solid var(--line);
+  background:var(--bg);color:var(--ink);border-radius:10px;padding:7px 13px;font-size:.88rem;
+  font-weight:500;text-decoration:none}
+.vid:hover{border-color:var(--band);color:var(--band)}
+.vid span{color:var(--red);font-size:.8rem}
+.acts{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+
+/* ---- notă de final ---- */
+.soon{background:var(--surface);border:1px dashed var(--line);border-radius:14px;
+  padding:12px 15px;margin:11px 0;color:var(--muted);font-size:.9rem}
+.rule{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--band);
+  border-radius:4px 14px 14px 4px;padding:13px 15px;margin:18px 0 6px;font-size:.92rem}
+.rule b{font-family:var(--disp);font-weight:600}
+.foot{color:var(--muted);font-size:.82rem;margin:16px 0 8px;display:flex;
+  justify-content:space-between;align-items:center;gap:10px}
+.reset{border:none;background:none;color:var(--muted);font-size:.82rem;text-decoration:underline;padding:0}
+
+/* ---- cronometru ---- */
+.clock{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);
+  border-top:1px solid var(--line);transform:translateY(110%);transition:transform .2s ease}
+.clock.on{transform:translateY(0)}
+.clock-in{max-width:640px;margin:0 auto;padding:11px 14px calc(11px + env(safe-area-inset-bottom));
+  display:flex;align-items:center;gap:12px}
+.clock .t{font-family:var(--disp);font-weight:600;font-size:1.7rem;
+  font-variant-numeric:tabular-nums;min-width:82px}
+.clock .what{flex:1;min-width:0;font-size:.88rem;color:var(--muted);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.clock button{border:1px solid var(--line);background:var(--bg);color:var(--ink);
+  border-radius:10px;padding:9px 14px;font-size:.88rem;font-weight:500}
+.clock.ding .t{color:var(--red)}
+
+/* ---- sincronizare ---- */
+.sync{background:var(--surface);border:1px solid var(--line);border-radius:15px;
+  padding:0 15px;margin:20px 0 6px}
+.sync summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;
+  padding:13px 0;font-family:var(--disp);font-weight:600;font-size:1.02rem}
+.sync summary::-webkit-details-marker{display:none}
+.sync summary::after{content:"";flex:0 0 auto;width:7px;height:7px;margin-left:auto;
+  border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);
+  transform:rotate(45deg) translateY(-2px);transition:transform .15s}
+.sync[open] summary::after{transform:rotate(225deg) translateY(-2px)}
+.sync .st{font-family:var(--body);font-weight:400;font-size:.78rem;color:var(--muted);
+  margin-left:auto;white-space:nowrap}
+.sync .in{padding:0 0 14px}
+.sync .note{color:var(--muted);font-size:.88rem;margin:0 0 11px}
+.syncl{display:block;font-size:.82rem;color:var(--muted);margin-bottom:9px}
+.syncl input{display:block;width:100%;margin-top:4px;font:inherit;font-size:.95rem;
+  color:var(--ink);background:var(--bg);border:1px solid var(--line);
+  border-radius:10px;padding:9px 11px}
+.sync button{border:1px solid var(--line);background:var(--bg);color:var(--ink);
+  border-radius:10px;padding:9px 15px;font-size:.88rem;font-weight:500}
+.sync button.pri{background:var(--red);border-color:var(--red);color:#fff}
+.sync .ver{color:var(--muted);font-size:.78rem;margin:11px 0 0}
+
+/* ---- banda de versiune nouă ---- */
+.updbar{position:fixed;left:50%;transform:translateX(-50%);z-index:40;
+  bottom:calc(16px + env(safe-area-inset-bottom,0px));
+  border:none;background:var(--ink);color:#fff;border-radius:99px;
+  padding:11px 18px;font-size:.88rem;font-weight:500;
+  box-shadow:0 6px 20px rgba(43,32,39,.3)}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Antrenament pe zile</h1>
+  <p class="lede">O grupă musculară pe zi, acasă, fără echipament. Alege ziua din calendar și bifează ce ai făcut — fiecare exercițiu pornește de la nivelul 1.</p>
+
+  <section class="cal" aria-label="Calendar">
+    <div class="cal-top">
+      <button class="nav" type="button" id="prev" aria-label="Luna trecută">‹</button>
+      <h2 id="luna"></h2>
+      <button class="nav" type="button" id="next" aria-label="Luna următoare">›</button>
+    </div>
+    <div class="dow" aria-hidden="true"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+    <div class="days" id="days"></div>
+    <div class="cal-foot"><span id="calSum"></span><button type="button" id="toAzi">Azi</button></div>
+  </section>
+
+  <main id="day"></main>
+
+  <details class="sync" id="syncBox">
+    <summary>&#8596; Sincronizare<span class="st" id="syncState"></span></summary>
+    <div class="in">
+      <p class="note" id="syncHint">Se preg&#259;te&#537;te&#8230;</p>
+      <div id="syncForm" hidden>
+        <label class="syncl">Email<input type="email" id="syncEmail" autocomplete="username" autocapitalize="off" spellcheck="false"></label>
+        <label class="syncl">Parol&#259;<input type="password" id="syncPass" autocomplete="current-password"></label>
+        <button class="pri" id="syncIn" type="button">Conecteaz&#259;</button>
+      </div>
+      <div id="syncOutBox" hidden><button id="syncOut" type="button">Deconecteaz&#259;</button></div>
+      <p class="note" id="syncMsg"></p>
+      <p class="ver">versiunea <span id="verNo">&#8230;</span></p>
+    </div>
+  </details>
+</div>
+
+<button type="button" class="updbar" id="upd" hidden>Versiune nou&#259; &#8212; apas&#259; ca s&#259; o folose&#537;ti</button>
+
+<div class="clock" id="clock">
+  <div class="clock-in">
+    <span class="t" id="clockT">00:00</span>
+    <span class="what" id="clockW"></span>
+    <button type="button" id="clockX">Oprește</button>
+  </div>
+</div>
+
+<script>
+/* =========================================================================
+   Antrenament pe zile — split pe grupe musculare, progresie pe nivele.
+   Ascultătorii se leagă o singură dată (wire); render() redesenează tot.
+   ========================================================================= */
+
+const LS_KEY = 'antrenament.zile.v2';
+const REST_S = 90;
+
+/* n = numele nivelului, c = cum se face, s = serii,
+   r = repetări, t = secunde de ținut, p = pe fiecare parte */
+const ZILE = [
+  {
+    key:'imp', zi:'Luni', scurt:'Lu', titlu:'Împins',
+    grup:'Piept, triceps, umeri din față', band:'#C04A6E',
+    ex:[
+      {id:'flot', nume:'Flotări', niv:[
+        {n:'La perete', c:'Mâinile pe perete la lățimea umerilor, corpul drept ca o scândură. Coboară până atingi peretele cu pieptul.', s:3, r:8},
+        {n:'La blatul din bucătărie', c:'Aceeași mișcare, dar mâinile pe blat. Cu cât sprijinul e mai jos, cu atât e mai greu.', s:3, r:8},
+        {n:'Pe marginea scaunului', c:'Scaunul lipit de perete ca să nu alunece.', s:3, r:8},
+        {n:'Pe genunchi', c:'Pe podea, sprijin pe genunchi. Șoldurile nu cad și nu se ridică.', s:3, r:6},
+        {n:'Clasice', c:'Din vârfuri, corpul în linie de la călcâi la cap.', s:3, r:5},
+        {n:'Cu pauză de 2 secunde jos', c:'Coboară, stai două secunde la un pumn de podea, împinge.', s:3, r:6}
+      ]},
+      {id:'trici', nume:'Flotări cu mâinile apropiate', niv:[
+        {n:'La perete', c:'Degetele mari aproape să se atingă, coatele pe lângă corp.', s:3, r:10},
+        {n:'La masă', c:'Coatele rămân lipite de coaste tot timpul.', s:3, r:8},
+        {n:'Pe genunchi', c:'Mâinile sub piept, nu sub umeri.', s:3, r:6},
+        {n:'În diamant, pe podea', c:'Indexul și degetul mare formează un romb sub stern.', s:3, r:5}
+      ]},
+      {id:'dips', nume:'Dips pe scaun', niv:[
+        {n:'Genunchi îndoiți, coborâre mică', c:'Cu spatele la scaun, palmele pe margine, degetele înainte. Coboară un lat de palmă.', s:3, r:6},
+        {n:'Genunchi îndoiți, complet', c:'Coboară până brațul face un unghi drept. Umerii jos, departe de urechi.', s:3, r:8},
+        {n:'Picioarele întinse', c:'Călcâiele pe podea, picioarele drepte.', s:3, r:8},
+        {n:'Picioarele pe alt scaun', c:'Al doilea scaun la aceeași înălțime.', s:3, r:8}
+      ]},
+      {id:'izo', nume:'Ținut jos, în flotare', niv:[
+        {n:'La masă', c:'Coboară și stai acolo. Respiră, nu-ți ține respirația.', s:3, t:15},
+        {n:'Pe genunchi', c:'Coatele lipite, șoldurile în linie.', s:3, t:15},
+        {n:'Pe podea', c:'Din vârfuri, la jumătatea coborârii.', s:3, t:20},
+        {n:'Pe podea, mai lung', c:'Aceeași poziție, dublul timpului.', s:3, t:30}
+      ]}
+    ]
+  },
+  {
+    key:'tras', zi:'Marți', scurt:'Ma', titlu:'Tras',
+    grup:'Spate și biceps', band:'#9C4A78',
+    ex:[
+      {id:'usa', nume:'Tras de tocul ușii', niv:[
+        {n:'Corpul aproape drept', c:'Prinde ambele tocuri ale unei uși deschise, vârfurile lângă prag, lasă-te pe spate cu brațele întinse și trage-te la ușă. Cu cât te lași mai mult pe spate, cu atât e mai greu.', s:3, r:10},
+        {n:'Picioarele mai în față', c:'Mai multă greutate în brațe. Omoplații se strâng primii, apoi îndoi coatele.', s:3, r:10},
+        {n:'Cu pauză de 2 secunde sus', c:'Ține pieptul lipit de mână înainte să cobori.', s:3, r:8},
+        {n:'Cu un singur braț', c:'Prinde un singur toc, corpul ușor răsucit.', s:3, r:8, p:true}
+      ]},
+      {id:'masa', nume:'Tras sub masă', niv:[
+        {n:'Genunchi îndoiți, corp înclinat', c:'Culcat sub o masă solidă, prinzi marginea pe deasupra și te tragi până atingi masa cu pieptul. Testează întâi masa cu greutatea ta.', s:3, r:6},
+        {n:'Genunchi îndoiți', c:'Tălpile pe podea, șoldurile sus, corpul drept de la genunchi la umeri.', s:3, r:8},
+        {n:'Picioarele întinse', c:'Doar călcâiele ating podeaua.', s:3, r:8},
+        {n:'Picioarele pe scaun', c:'Corpul ajunge orizontal sau mai sus.', s:3, r:6}
+      ]},
+      {id:'sup', nume:'Superman', niv:[
+        {n:'Doar brațele', c:'Culcat pe burtă, ridici brațele și pieptul. Privirea în podea, gâtul lung.', s:3, r:10},
+        {n:'Brațe și picioare', c:'Ridici tot, ca un arc.', s:3, r:10},
+        {n:'Cu pauză de 3 secunde sus', c:'Strânge fesierii cât ții.', s:3, r:8},
+        {n:'Înot', c:'Sus, alternezi braț stâng cu picior drept, fără să lași jos.', s:3, t:30}
+      ]},
+      {id:'bird', nume:'Bird-dog', niv:[
+        {n:'Doar brațul', c:'În patru labe, întinzi un braț înainte fără să te răsucești.', s:3, r:8, p:true},
+        {n:'Braț și picior opus', c:'Braț stâng și picior drept, în linie cu spatele.', s:3, r:8, p:true},
+        {n:'Cu pauză de 3 secunde', c:'Ține poziția, un pahar cu apă pe spate nu trebuie să se verse.', s:3, r:8, p:true},
+        {n:'Cu cotul la genunchi', c:'Între repetări aduci cotul la genunchiul opus sub burtă.', s:3, r:8, p:true}
+      ]}
+    ]
+  },
+  {
+    key:'pic', zi:'Miercuri', scurt:'Mi', titlu:'Picioare',
+    grup:'Coapse și gambe', band:'#B15140',
+    ex:[
+      {id:'genu', nume:'Genuflexiuni', niv:[
+        {n:'Ridicări de pe scaun', c:'Stai pe scaun, ridică-te fără să te ajuți cu mâinile, așază-te controlat.', s:3, r:8},
+        {n:'Cu sprijin de tocul ușii', c:'Ții ușor de toc și cobori mai adânc decât ai putea singur.', s:3, r:10},
+        {n:'Libere, pe jumătate', c:'Brațele înainte pentru echilibru, călcâiele lipite de podea.', s:3, r:12},
+        {n:'Libere, complete', c:'Coapsa ajunge paralelă cu podeaua sau mai jos.', s:3, r:12},
+        {n:'Cu pauză de 2 secunde jos', c:'Stai în poziția de jos, genunchii împinși în afară.', s:3, r:10},
+        {n:'Într-un picior, cu sprijin', c:'Un picior întins înainte, mâna pe tocul ușii, cobori cât poți controlat.', s:3, r:6, p:true}
+      ]},
+      {id:'fand', nume:'Fandări', niv:[
+        {n:'Pas înapoi, cu mâna pe perete', c:'Pas mare în spate, genunchiul din spate spre podea, apoi revii.', s:3, r:6, p:true},
+        {n:'Pas înapoi, liber', c:'Fără sprijin. Trunchiul drept, greutatea pe piciorul din față.', s:3, r:8, p:true},
+        {n:'Pas în față', c:'Mai greu la coborâre — controlează, nu te lăsa să cazi.', s:3, r:8, p:true},
+        {n:'Cu piciorul din spate pe scaun', c:'Vârful pe scaun, cobori pe piciorul din față.', s:3, r:8, p:true}
+      ]},
+      {id:'perete', nume:'Stat la perete', niv:[
+        {n:'Scurt', c:'Cu spatele lipit de perete, genunchii la 90 de grade, ca pe un scaun invizibil.', s:3, t:20},
+        {n:'Mai lung', c:'Greutatea în călcâie, spatele lipit tot timpul.', s:3, t:30},
+        {n:'Și mai lung', c:'Brațele încrucișate la piept, nu pe genunchi.', s:3, t:45},
+        {n:'Un minut', c:'Respiră rar și numără.', s:3, t:60}
+      ]},
+      {id:'varf', nume:'Ridicări pe vârfuri', niv:[
+        {n:'Ambele picioare', c:'Te ridici cât de sus poți pe vârfuri, cobori lent.', s:3, r:15},
+        {n:'Cu pauză de 2 secunde sus', c:'Strânge gamba în punctul de sus.', s:3, r:15},
+        {n:'Pe marginea unei trepte', c:'Călcâiele în aer, cobori sub nivelul treptei.', s:3, r:15},
+        {n:'Într-un picior', c:'Celălalt picior îndoit, mâna pe perete doar pentru echilibru.', s:3, r:10, p:true}
+      ]}
+    ]
+  },
+  {
+    key:'umeri', zi:'Joi', scurt:'Jo', titlu:'Umeri',
+    grup:'Deltoizi și partea de sus a spatelui', band:'#A8632E',
+    ex:[
+      {id:'pike', nume:'Flotări în V', niv:[
+        {n:'La perete, mâinile jos', c:'Mâinile pe perete la înălțimea taliei, șoldurile împinse în spate, împingi cu umerii.', s:3, r:8},
+        {n:'La masă', c:'Mâinile pe masă, corpul în V, capul coboară între brațe.', s:3, r:8},
+        {n:'Pe scaun', c:'Cu cât mâinile sunt mai jos, cu atât umerii duc mai mult.', s:3, r:8},
+        {n:'Pe podea', c:'Fundul sus, creștetul coboară între palme.', s:3, r:6},
+        {n:'Cu picioarele pe scaun', c:'Corpul aproape vertical. E pregătirea pentru verticală.', s:3, r:5}
+      ]},
+      {id:'ytw', nume:'Y-T-W culcat', niv:[
+        {n:'Doar Y', c:'Pe burtă, brațele întinse în sus ca un Y, le ridici de la podea.', s:3, r:10},
+        {n:'Y și T', c:'Adaugi brațele în lateral, ca un T, cu degetele mari în sus.', s:3, r:10},
+        {n:'Y, T și W', c:'Și coatele îndoite lângă coaste, ca un W. Trei mișcări la rând fac o repetare.', s:3, r:8},
+        {n:'Cu pauză de 3 secunde', c:'Ții fiecare poziție înainte să treci la următoarea.', s:3, r:8}
+      ]},
+      {id:'tap', nume:'Atingeri de umăr în plank', niv:[
+        {n:'Pe genunchi', c:'Sprijin pe palme și genunchi, atingi umărul opus cu mâna.', s:3, r:10},
+        {n:'Plank normal', c:'Din vârfuri. Șoldurile nu se leagănă — asta e tot exercițiul.', s:3, r:10},
+        {n:'Picioarele apropiate', c:'Bază mai îngustă, mult mai greu de stabilizat.', s:3, r:12},
+        {n:'Cu pauză de 2 secunde', c:'Ține mâna pe umăr și nu lăsa șoldul să cadă.', s:3, r:10}
+      ]},
+      {id:'vert', nume:'Mers pe perete spre verticală', niv:[
+        {n:'Plank cu vârfurile pe perete', c:'Palmele pe podea, vârfurile sprijinite de perete la câțiva centimetri.', s:3, t:20},
+        {n:'Urcat până la genunchi', c:'Mergi pe perete cu picioarele, mâinile se apropie de perete.', s:3, t:20},
+        {n:'Șoldurile peste umeri', c:'Corpul aproape vertical, privirea între mâini.', s:3, t:20},
+        {n:'Verticală la perete', c:'Cu burta la perete, corpul drept. Coboară imediat dacă pierzi linia.', s:3, t:30}
+      ]}
+    ]
+  },
+  {
+    key:'abd', zi:'Vineri', scurt:'Vi', titlu:'Abdomen',
+    grup:'Zona mijlocie, față și lateral', band:'#8A5A9E',
+    ex:[
+      {id:'plank', nume:'Plank', niv:[
+        {n:'Pe genunchi', c:'Pe coate și genunchi, corpul drept de la genunchi la cap.', s:3, t:20},
+        {n:'Pe coate, din vârfuri', c:'Fundul nu urcă și nu cade. Strânge fesierii.', s:3, t:20},
+        {n:'Mai lung', c:'Aceeași poziție, dublul timpului.', s:3, t:40},
+        {n:'Un minut', c:'Dacă linia se strică, oprește-te — timpul fără formă nu contează.', s:3, t:60},
+        {n:'Cu un picior ridicat', c:'Ridici un picior la câțiva centimetri, alternezi la jumătate.', s:3, t:30}
+      ]},
+      {id:'crunch', nume:'Abdomene', niv:[
+        {n:'Pe jumătate', c:'Culcat, genunchii îndoiți, ridici doar omoplații de la podea.', s:3, r:10},
+        {n:'Complete', c:'Bărbia departe de piept, mișcarea vine din abdomen, nu din gât.', s:3, r:12},
+        {n:'Cu picioarele pe scaun', c:'Gambele pe scaun, coapsele vertical.', s:3, r:12},
+        {n:'Bicicletă', c:'Cotul spre genunchiul opus, alternativ, lent.', s:3, r:20}
+      ]},
+      {id:'dead', nume:'Dead bug', niv:[
+        {n:'Doar brațul', c:'Culcat pe spate, genunchii sus la 90 de grade, duci un braț deasupra capului. Zona lombară rămâne lipită de podea.', s:3, r:8, p:true},
+        {n:'Doar piciorul', c:'Cobori un călcâi spre podea, fără să ridici spatele.', s:3, r:8, p:true},
+        {n:'Braț și picior opus', c:'Simultan, lent, cu expirație la coborâre.', s:3, r:8, p:true},
+        {n:'Cu piciorul întins', c:'Piciorul se întinde complet, aproape de podea.', s:3, r:10, p:true}
+      ]},
+      {id:'lat', nume:'Plank lateral', niv:[
+        {n:'Pe genunchi', c:'Pe cot și genunchi, șoldul ridicat, corpul într-un plan.', s:3, t:15},
+        {n:'Complet', c:'Pe cot și marginea tălpii, picioarele suprapuse.', s:3, t:20},
+        {n:'Mai lung', c:'Umărul exact peste cot tot timpul.', s:3, t:30},
+        {n:'Cu ridicare de șold', c:'Cobori șoldul aproape de podea și îl ridici înapoi.', s:3, r:8, p:true}
+      ]}
+    ]
+  },
+  {
+    key:'fes', zi:'Sâmbătă', scurt:'Sâ', titlu:'Fesieri și spate jos',
+    grup:'Partea din spate a corpului', band:'#8E6B3A',
+    ex:[
+      {id:'pod', nume:'Pod de șold', niv:[
+        {n:'Ambele picioare', c:'Culcat pe spate, tălpile aproape de fund, ridici bazinul până umeri-genunchi fac o linie.', s:3, r:12},
+        {n:'Cu pauză de 3 secunde sus', c:'Strânge fesierii cât ții, nu arcui spatele.', s:3, r:12},
+        {n:'Cu picioarele pe scaun', c:'Călcâiele pe scaun, amplitudine mai mare.', s:3, r:12},
+        {n:'Într-un picior', c:'Un picior întins în sus, ridici doar din celălalt.', s:3, r:8, p:true}
+      ]},
+      {id:'thrust', nume:'Împins de șold cu umerii pe scaun', niv:[
+        {n:'Pe jumătate', c:'Omoplații sprijiniți pe marginea scaunului, tălpile pe podea, ridici bazinul parțial.', s:3, r:10},
+        {n:'Complet', c:'Sus, corpul e orizontal de la genunchi la umeri. Bărbia în piept.', s:3, r:12},
+        {n:'Cu pauză de 2 secunde', c:'Ține sus și strânge.', s:3, r:12},
+        {n:'Într-un picior', c:'Celălalt genunchi la piept.', s:3, r:8, p:true}
+      ]},
+      {id:'ischio', nume:'Îndoiri din șold', niv:[
+        {n:'Cu mâinile la ceafă', c:'În picioare, împingi șoldurile în spate și cobori pieptul cu spatele drept. Simți întindere în spatele coapsei.', s:3, r:12},
+        {n:'Într-un picior, cu sprijin', c:'Mâna pe un perete, piciorul liber merge în spate ca o cumpănă.', s:3, r:8, p:true},
+        {n:'Într-un picior, fără sprijin', c:'Brațele în lateral pentru echilibru.', s:3, r:8, p:true},
+        {n:'Nordic asistat', c:'În genunchi pe o pernă, cineva sau o canapea îți ține gleznele, cobori 5 secunde și te împingi înapoi cu mâinile.', s:3, r:5}
+      ]},
+      {id:'lomb', nume:'Extensii lombare', niv:[
+        {n:'Ținut scurt', c:'Pe burtă, mâinile la tâmple, ridici pieptul câțiva centimetri și ții.', s:3, t:15},
+        {n:'Mai lung', c:'Picioarele rămân pe podea, mișcarea e mică.', s:3, t:25},
+        {n:'Cu brațele întinse', c:'Brațele înainte, pârghie mai lungă.', s:3, t:30},
+        {n:'Lung', c:'Gâtul relaxat, privirea în podea tot timpul.', s:3, t:40}
+      ]}
+    ]
+  },
+  {
+    key:'odi', zi:'Duminică', scurt:'Du', titlu:'Odihnă',
+    grup:'Mers și mobilitate — mușchii cresc azi, nu la antrenament', band:'#6E8B78', rest:true,
+    ex:[
+      {id:'mers', nume:'Mers', niv:[{n:'Afară, în ritm alert', c:'Douăzeci-treizeci de minute. Nu e opțional — circulația e cea care repară.', s:1, t:1200}]},
+      {id:'sold', nume:'Întindere pentru șolduri', niv:[{n:'Fandare joasă', c:'Genunchiul din spate pe podea, împingi bazinul înainte. Se simte în față, sus, la coapsă.', s:2, t:60, p:true}]},
+      {id:'piept', nume:'Întindere pentru piept', niv:[{n:'La tocul ușii', c:'Antebrațul pe toc, cotul la nivelul umărului, te răsucești ușor în direcția opusă.', s:2, t:45, p:true}]},
+      {id:'pisica', nume:'Pisică și cămilă', niv:[{n:'În patru labe', c:'Arcuiești spatele în sus, apoi îl lași în jos. Lent, zece cicluri, respirând.', s:2, r:10}]}
+    ]
+  }
+];
+
+/* Termenii după care se caută clipul, pe exercițiu și nivel.
+   Sunt în engleză pentru că acolo sunt clipurile bune de tehnică. */
+const VIDEO = {
+  'imp.flot':    ['wall push up','incline push up','push up on bench','knee push up','push up proper form','push up with pause'],
+  'imp.trici':   ['close hand wall push up','close grip incline push up','close grip knee push up','diamond push up'],
+  'imp.dips':    ['chair dips bent knees','bench dips','bench dips legs straight','bench dips feet elevated'],
+  'imp.izo':     ['incline push up isometric hold','knee push up hold','push up bottom hold','push up isometric hold'],
+  'tras.usa':    ['doorway row bodyweight','door frame row','door row pause','single arm doorway row'],
+  'tras.masa':   ['under table row bent knees','inverted row under table','inverted row legs straight','feet elevated inverted row'],
+  'tras.sup':    ['superman exercise arms only','superman exercise','superman hold','swimmer exercise prone'],
+  'tras.bird':   ['bird dog arm only','bird dog exercise','bird dog hold','bird dog crunch'],
+  'pic.genu':    ['sit to stand exercise','assisted squat door frame','half squat','bodyweight squat form','pause squat','assisted pistol squat'],
+  'pic.fand':    ['reverse lunge with support','reverse lunge','forward lunge','bulgarian split squat'],
+  'pic.perete':  'wall sit exercise',
+  'pic.varf':    ['calf raise','calf raise pause top','calf raise on step','single leg calf raise'],
+  'umeri.pike':  ['wall push up hands low','incline pike push up','pike push up on chair','pike push up','elevated pike push up'],
+  'umeri.ytw':   ['prone y raise','prone y and t raise','ytw raise prone','ytw raise hold'],
+  'umeri.tap':   ['shoulder taps on knees','plank shoulder taps','shoulder taps feet together','plank shoulder tap hold'],
+  'umeri.vert':  ['plank feet on wall','wall walk up handstand','wall walk handstand','wall handstand hold'],
+  'abd.plank':   ['knee plank','forearm plank','plank hold','plank one minute','plank leg lift'],
+  'abd.crunch':  ['crunch exercise form','full crunch','crunch feet on chair','bicycle crunch'],
+  'abd.dead':    ['dead bug arm only','dead bug leg only','dead bug exercise','dead bug straight leg'],
+  'abd.lat':     ['side plank on knees','side plank','side plank hold','side plank hip dips'],
+  'fes.pod':     ['glute bridge','glute bridge hold','feet elevated glute bridge','single leg glute bridge'],
+  'fes.thrust':  ['bodyweight hip thrust partial','bodyweight hip thrust couch','hip thrust pause','single leg hip thrust'],
+  'fes.ischio':  ['bodyweight good morning','single leg romanian deadlift bodyweight','single leg deadlift balance','assisted nordic hamstring curl'],
+  'fes.lomb':    ['prone back extension floor','superman back extension hold','back extension arms extended','prone back extension'],
+  'odi.mers':    'brisk walking technique',
+  'odi.sold':    'low lunge hip flexor stretch',
+  'odi.piept':   'doorway chest stretch',
+  'odi.pisica':  'cat cow stretch'
+};
+function cauta(z, ex, i){
+  const v = VIDEO[z.key + '.' + ex.id];
+  const q = Array.isArray(v) ? (v[i] || v[0]) : v;
+  return q ? 'https://www.youtube.com/results?search_query=' + encodeURIComponent(q) : '';
+}
+
+// ---- stare -----------------------------------------------------------
+const pad = n => String(n).padStart(2, '0');
+const ymd = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+const AZI = ymd(new Date());
+const LUNI = ['ianuarie','februarie','martie','aprilie','mai','iunie',
+  'iulie','august','septembrie','octombrie','noiembrie','decembrie'];
+
+function load(){
+  const def = { sel: AZI, niv: {}, log: {} };
+  try {
+    const s = JSON.parse(localStorage.getItem(LS_KEY));
+    if (!s) return migrate(def);
+    const niv = (s.niv && typeof s.niv === 'object') ? s.niv : {};
+    const log = (s.log && typeof s.log === 'object') ? s.log : {};
+    const sel = /^\d{4}-\d\d-\d\d$/.test(s.sel) ? s.sel : AZI;
+    return { sel, niv, log };
+  } catch (e) { return migrate(def); }
+}
+// bifele din versiunea pe o singură zi trec în jurnal, la data lor
+function migrate(def){
+  try {
+    const old = JSON.parse(localStorage.getItem('antrenament.zile.v1'));
+    if (!old) return def;
+    if (old.niv) def.niv = old.niv;
+    if (old.done && old.data) {
+      const zi = {};
+      for (const k in old.done) zi[k.slice(k.indexOf('.') + 1)] = 1;
+      if (Object.keys(zi).length) def.log[old.data] = zi;
+    }
+  } catch (e) {}
+  return def;
+}
+let applyingRemote = false;   // cât ține, salvarea nu mai trimite nimic în cloud
+function save(){
+  try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch (e) {}
+  if (applyingRemote) return;
+  try { if (window.AntrenSync) window.AntrenSync.onLocalSave(state); } catch (e) {}
+}
+
+const $ = id => document.getElementById(id);
+let state = load();
+let luna = new Date(state.sel + 'T12:00:00');   // luna afișată în calendar
+let tick = null, endAt = 0, clockLbl = '';
+
+/* API pentru stratul de sincronizare din sync.js. Nu schimba numele.
+   Pleacă doar nivelele și bifele; ziua deschisă în calendar rămâne a
+   dispozitivului din mână, altfel laptopul ți-ar muta ziua pe telefon. */
+window.AntrenApp = {
+  KEY: LS_KEY,
+  getState: () => ({ niv: state.niv, log: state.log }),
+  setState(ns){
+    if (!ns || typeof ns !== 'object') return false;
+    if (!ns.niv || typeof ns.niv !== 'object') return false;
+    if (!ns.log || typeof ns.log !== 'object') return false;
+    applyingRemote = true;
+    try { state.niv = ns.niv; state.log = ns.log; save(); render(); }
+    finally { applyingRemote = false; }
+    return true;
+  }
+};
+
+// ziua de antrenament o dă ziua săptămânii a datei alese (luni = prima)
+const ziuaPt = iso => ZILE[(new Date(iso + 'T12:00:00').getDay() + 6) % 7];
+const ziua = () => ziuaPt(state.sel);
+const nivel = (z, ex) => Math.min(ex.niv.length - 1, state.niv[z.key + '.' + ex.id] || 0);
+const bife = iso => state.log[iso] || {};
+const bifat = (iso, ex) => !!bife(iso)[ex.id];
+function progres(iso){
+  const z = ziuaPt(iso), b = bife(iso);
+  return { gata: z.ex.filter(e => b[e.id]).length, tot: z.ex.length };
+}
+
+// ---- text ------------------------------------------------------------
+function doza(l){
+  const serii = l.s > 1 ? l.s + ' serii × ' : '';
+  if (l.t) return serii + (l.t >= 60 ? (l.t / 60) + ' min' : l.t + ' secunde') + (l.p ? ' pe parte' : '');
+  return serii + l.r + (l.p ? ' pe parte' : '');
+}
+function mmss(s){
+  const m = Math.floor(s / 60);
+  return pad(m) + ':' + pad(s % 60);
+}
+function ziText(iso){
+  const d = new Date(iso + 'T12:00:00');
+  if (iso === AZI) return 'Azi';
+  return ziuaPt(iso).zi + ', ' + d.getDate() + ' ' + LUNI[d.getMonth()];
+}
+
+// ---- calendar --------------------------------------------------------
+function renderCal(){
+  const an = luna.getFullYear(), m = luna.getMonth();
+  $('luna').textContent = LUNI[m][0].toUpperCase() + LUNI[m].slice(1) + ' ' + an;
+
+  const prim = (new Date(an, m, 1).getDay() + 6) % 7;   // câte celule goale la început
+  const nz = new Date(an, m + 1, 0).getDate();
+  let html = '';
+  for (let i = 0; i < prim; i++) html += '<span class="day blank"></span>';
+  let complete = 0;
+  for (let d = 1; d <= nz; d++) {
+    const iso = an + '-' + pad(m + 1) + '-' + pad(d);
+    const p = progres(iso);
+    const full = p.gata === p.tot && p.gata > 0;
+    if (full) complete++;
+    const cls = ['day'];
+    if (full) cls.push('full'); else if (p.gata) cls.push('part');
+    if (iso === AZI) cls.push('today');
+    if (iso === state.sel) cls.push('sel');
+    if (iso > AZI) cls.push('fut');
+    html += `<button class="${cls.join(' ')}" type="button" data-d="${iso}"
+      aria-label="${d} ${LUNI[m]}${full ? ', complet' : p.gata ? ', început' : ''}"
+      aria-pressed="${iso === state.sel}">${d}</button>`;
+  }
+  $('days').innerHTML = html;
+  $('calSum').textContent = complete === 1 ? 'O zi completă luna asta' : complete + ' zile complete luna asta';
+}
+
+// ---- ziua ------------------------------------------------------------
+function renderZi(){
+  const iso = state.sel, z = ziua(), viitor = iso > AZI;
+  document.documentElement.style.setProperty('--band', z.band);
+  const p = progres(iso), pct = Math.round(p.gata / p.tot * 100);
+
+  const exHtml = z.ex.map(ex => {
+    const i = nivel(z, ex), l = ex.niv[i], n = ex.niv.length, on = bifat(iso, ex);
+    const rungs = ex.niv.map((_, k) =>
+      `<span class="rung${k <= i ? ' on' : ''}" style="height:${40 + k * (60 / Math.max(1, n - 1))}%"></span>`).join('');
+    return `<article class="ex${on ? ' done' : ''}">
+      <div class="ex-top">
+        <h3 class="ex-name">${ex.nume}</h3>
+        ${viitor ? '' : `<button class="tick" type="button" data-tick="${ex.id}"
+          aria-pressed="${on}" aria-label="${on ? 'Anulează bifa' : 'Marchează ca făcut'}">${on ? '✓' : '○'}</button>`}
+      </div>
+      <p class="lvl-name">${l.n}</p>
+      <p class="how">${l.c}</p>
+      <p class="dose">${doza(l)}</p>
+      <div class="acts">
+        <a class="vid" href="${cauta(z, ex, i)}" target="_blank" rel="noopener noreferrer">▶ Vezi cum se face <span>YouTube</span></a>
+        ${l.t ? `<button class="timer-btn" type="button" data-t="${l.t}" data-lbl="${ex.nume}">Pornește ${l.t >= 60 ? (l.t / 60) + ' min' : l.t + ' s'}</button>` : ''}
+      </div>
+      ${n > 1 ? `<div class="ladder">
+        <button class="lbtn" type="button" data-lv="-1" data-ex="${ex.id}" ${i === 0 ? 'disabled' : ''} aria-label="Coboară un nivel">−</button>
+        <div class="rungs" aria-hidden="true">${rungs}</div>
+        <span class="lvl-n">nivel ${i + 1} din ${n}</span>
+        <button class="lbtn" type="button" data-lv="1" data-ex="${ex.id}" ${i === n - 1 ? 'disabled' : ''} aria-label="Urcă un nivel">+</button>
+      </div>` : ''}
+    </article>`;
+  }).join('');
+
+  const zileFacute = Object.keys(state.log)
+    .filter(k => { const q = progres(k); return q.gata === q.tot && q.gata > 0; }).length;
+
+  $('day').innerHTML = `
+    <header class="head">
+      <h2>${z.titlu}</h2>
+      <p class="grp">${ziText(iso)} · ${z.grup}</p>
+      ${viitor ? '' : `<div class="bar"><i style="width:${pct}%"></i></div>
+      <p class="bar-lbl">${p.gata} din ${p.tot} ${z.rest ? 'făcute' : 'exerciții bifate'}</p>`}
+    </header>
+    ${viitor ? '<p class="soon">Ziua asta n-a venit încă — o vezi ca să știi ce urmează. Bifele se deschid în ziua respectivă.</p>' : ''}
+    ${exHtml}
+    <div class="rule"><b>Când urci un nivel:</b> ${z.rest
+      ? 'ziua asta nu are nivele. Dacă te doare ceva de ieri, mergi mai mult și întinde mai puțin.'
+      : 'când termini toate seriile cu formă bună și simți că mai aveai două repetări în rezervă. Dacă ultima repetare iese urât, coboară un nivel — nu tăia din repetări.'}</div>
+    <div class="foot"><span>${zileFacute} ${zileFacute === 1 ? 'zi completă în total' : 'zile complete în total'}</span>
+      <button class="reset" type="button" id="resetNiv">Resetează nivelele</button></div>`;
+}
+
+function render(){ renderCal(); renderZi(); }
+
+// ---- cronometru ------------------------------------------------------
+function startClock(sec, lbl){
+  stopClock();
+  endAt = Date.now() + sec * 1000;
+  clockLbl = lbl;
+  $('clock').classList.add('on');
+  $('clock').classList.remove('ding');
+  paint();
+  tick = setInterval(paint, 250);
+}
+function paint(){
+  const left = Math.max(0, Math.round((endAt - Date.now()) / 1000));
+  $('clockT').textContent = mmss(left);
+  $('clockW').textContent = clockLbl;
+  if (left === 0) {
+    clearInterval(tick); tick = null;
+    $('clock').classList.add('ding');
+    $('clockW').textContent = clockLbl + ' — gata';
+    if (navigator.vibrate) navigator.vibrate([120, 80, 120]);
+  }
+}
+function stopClock(){
+  if (tick) clearInterval(tick);
+  tick = null;
+  $('clock').classList.remove('on', 'ding');
+  document.querySelectorAll('.timer-btn.run').forEach(b => b.classList.remove('run'));
+}
+
+// ---- interacțiune ----------------------------------------------------
+function sariLa(iso){
+  state.sel = iso;
+  luna = new Date(iso + 'T12:00:00');
+  save(); render();
+}
+
+function wire(){
+  $('prev').addEventListener('click', () => { luna.setMonth(luna.getMonth() - 1); renderCal(); });
+  $('next').addEventListener('click', () => { luna.setMonth(luna.getMonth() + 1); renderCal(); });
+  $('toAzi').addEventListener('click', () => sariLa(AZI));
+  $('days').addEventListener('click', e => {
+    const b = e.target.closest('[data-d]');
+    if (b) { state.sel = b.dataset.d; save(); render(); }
+  });
+
+  $('day').addEventListener('click', e => {
+    const iso = state.sel, z = ziua();
+
+    const lv = e.target.closest('[data-lv]');
+    if (lv) {
+      const ex = z.ex.find(x => x.id === lv.dataset.ex);
+      state.niv[z.key + '.' + ex.id] =
+        Math.max(0, Math.min(ex.niv.length - 1, nivel(z, ex) + (+lv.dataset.lv)));
+      save(); renderZi();
+      return;
+    }
+
+    const tk = e.target.closest('[data-tick]');
+    if (tk) {
+      const zi = state.log[iso] || (state.log[iso] = {});
+      if (zi[tk.dataset.tick]) {
+        delete zi[tk.dataset.tick];
+        if (!Object.keys(zi).length) delete state.log[iso];
+      } else {
+        zi[tk.dataset.tick] = 1;
+        if (!z.rest && iso === AZI) startClock(REST_S, 'Pauză');
+      }
+      save(); render();
+      return;
+    }
+
+    const tb = e.target.closest('[data-t]');
+    if (tb) {
+      document.querySelectorAll('.timer-btn.run').forEach(b => b.classList.remove('run'));
+      tb.classList.add('run');
+      startClock(+tb.dataset.t, tb.dataset.lbl);
+      return;
+    }
+
+    if (e.target.id === 'resetNiv') {
+      if (!confirm('Toate exercițiile se întorc la nivelul 1. Zilele bifate rămân.')) return;
+      state.niv = {}; save(); renderZi();
+    }
+  });
+
+  $('clockX').addEventListener('click', stopClock);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && tick) paint(); });
+}
+
+wire();
+render();
+</script>
+
+<script>
+/* ---------- instalare ca aplicatie + actualizare automata ---------- */
+(function(){
+  var out=document.getElementById('verNo');
+  function showVer(v){if(out&&v)out.textContent=v;}
+
+  /* versiunea o stie service worker-ul care chiar ruleaza; daca nu raspunde,
+     o citim din sw.js, ca sa nu ramana scrisa in pagina una veche */
+  function fromFile(){
+    fetch('sw.js?v='+Date.now()).then(function(r){return r.text();}).then(function(t){
+      var m=t.match(/VERSION\s*=\s*'([^']+)'/);
+      showVer(m&&m[1]);
+    }).catch(function(){});
+  }
+  function askVersion(){
+    var done=false;
+    navigator.serviceWorker.addEventListener('message',function(e){
+      if(e.data&&e.data.type==='version'){done=true;showVer(e.data.version);}
+    });
+    /* intrebam direct worker-ul care conduce pagina; daca nu e niciunul
+       (prima deschidere, sau nu s-a putut inregistra) citim din fisier */
+    if(navigator.serviceWorker.controller)navigator.serviceWorker.controller.postMessage('version');
+    setTimeout(function(){if(!done)fromFile();},1200);
+  }
+
+  if(!('serviceWorker' in navigator)){fromFile();return;}
+  askVersion();
+
+  var bar=document.getElementById('upd'),waiting=null,applying=false,initiated=false;
+
+  /* nu intrerupem pe cineva care tocmai scrie parola in casuta de sincronizare */
+  function busy(){
+    var els=document.querySelectorAll('input[type=email],input[type=password]');
+    for(var i=0;i<els.length;i++)if((els[i].value||'').trim())return true;
+    return false;
+  }
+  function apply(){
+    if(applying||!waiting)return;
+    applying=true;initiated=true;
+    bar.textContent='Se actualizează…';bar.hidden=false;
+    waiting.postMessage('skipWaiting');
+  }
+  function offer(sw){
+    waiting=sw;
+    if(!busy()){apply();return;}
+    bar.hidden=false;
+  }
+  bar.addEventListener('click',apply);
+
+  navigator.serviceWorker.addEventListener('controllerchange',function(){
+    if(initiated)location.reload();
+  });
+
+  navigator.serviceWorker.register('sw.js').then(function(reg){
+    if(reg.waiting&&navigator.serviceWorker.controller)offer(reg.waiting);
+    reg.addEventListener('updatefound',function(){
+      var sw=reg.installing;if(!sw)return;
+      sw.addEventListener('statechange',function(){
+        if(sw.state==='installed'&&navigator.serviceWorker.controller)offer(sw);
+      });
+    });
+    /* cauta versiune noua cand deschizi aplicatia si din ora in ora */
+    document.addEventListener('visibilitychange',function(){
+      if(!document.hidden)reg.update().catch(function(){});
+    });
+    setInterval(function(){reg.update().catch(function(){});},60*60*1000);
+  }).catch(function(){});
+})();
+</script>
+<script src="firebase-config.js"></script>
+<script src="sync.js"></script>
+</body>
+</html>
